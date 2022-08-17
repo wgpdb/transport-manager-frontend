@@ -1,0 +1,328 @@
+<div class="container" id="main-container">
+    <div class="row">
+        <div class="col-md-12 mt-3">
+            <h3>Trips
+                <button type="button" (click)="onOpenModal('add')" class="btn btn-success float-end" data-bs-toggle="modal" data-bs-target="#addTripModal">Add trip</button>
+            </h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>From</th>
+                        <th>Stopover</th>
+                        <th>To</th>
+                        <th>Status</th>
+                        <th>Revenue</th>
+                        <th>Currency</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let tempTrip of trips">
+                        <td>{{ tempTrip.tripDate | date:'dd/MM/yyyy' }}</td>
+                        <td>{{ tempTrip.departureTime }}</td>
+                        <td>{{ tempTrip.origin }}</td>
+                        <td>{{ tempTrip.stopover }}</td>
+                        <td>{{ tempTrip.destination }}</td>
+                        <td>
+                            <span class="badge"
+                                [ngClass]="[tempTrip.tripStatus === 'COMPLETED' ? 'bg-success' : '', tempTrip.tripStatus === 'UPCOMING' ? 'bg-warning' : '', tempTrip.tripStatus === 'CANCELLED' ? 'bg-danger' : '']">
+                                {{ tempTrip.tripStatus }}
+                            </span>
+                        </td>
+                        <td>{{ tempTrip.tripRevenue.revenueNet | number: '1.2-2' }}</td>
+                        <td>{{ tempTrip.tripRevenue.currency }}</td>
+                        <td>
+                            <div class="float-right btn-group btn-group-sm">
+                                <a (click)="onOpenModal('preview', tempTrip)" class="btn btn-outline-success tooltips" data-bs-toggle="modal" data-bs-target="#previewTripModal" data-placement="top" data-original-title="Preview"><i class="fa-solid fa-magnifying-glass"></i></a>
+                                <a (click)="onOpenModal('update', tempTrip)" class="btn btn-outline-primary tooltips" data-bs-toggle="modal" data-bs-target="#updateTripModal" data-placement="top" data-original-title="Edit"><i class="fa fa-pen-to-square"></i></a>
+                                <a (click)="onOpenModal('delete', tempTrip)" class="btn btn-outline-danger tooltips" data-bs-toggle="modal" data-bs-target="#deleteTripModal" data-placement="top" data-original-title="Delete"><i class="fa fa-trash-can"></i></a>
+                             </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo; Previous</span>
+                        </a>
+                    </li>
+                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">Next &raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Add Trip Modal -->
+<div class="modal fade" id="addTripModal" tabindex="-1" role="dialog" aria-labelledby="addTripModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTripModalLabel">Add Trip</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form #addForm="ngForm" (ngSubmit)="addTrip(addForm)">
+                    <div class="form-group">
+                        <label for="tripDate">Departure Date</label>
+                        <input type="date" ngModel name="tripDate" class="form-control" id="tripDate" placeholder="Departure Date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="departureTime">Time</label>
+                        <input type="time" ngModel name="departureTime" class="form-control" id="departureTime" placeholder="Time" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="origin">Origin</label>
+                        <input type="text" ngModel name="origin" class="form-control" id="origin" placeholder="Origin" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="stopover">Stopover</label>
+                        <input type="text" ngModel name="stopover" class="form-control" id="stopover" placeholder="Stopover">
+                    </div>
+                    <div class="form-group">
+                        <label for="destination">Destination</label>
+                        <input type="text" ngModel name="destination" class="form-control" id="destination" placeholder="Destination" required>
+                    </div>
+                    <div>
+                        <label for="tripStatus" class="form-label">Trip Status</label>
+                        <select class="form-select form-select-sm" ngModel name="tripStatus" id="tripStatus">
+                            <option value="UPCOMING">Upcoming</option>
+                            <option value="COMPLETED">Completed</option>
+                            <option value="CANCELLED">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="form-group" ngModelGroup="tripRevenue">
+                        <label for="revenueNet">Revenue Net</label>
+                        <input type="text" ngModel name="revenueNet" class="form-control" id="revenueNet" placeholder="Revenue Net" required>
+                    </div>
+                    <div class="form-group" ngModelGroup="tripRevenue">
+                        <label for="commissionNet">Commission</label>
+                        <input type="text" ngModel name="commissionNet" class="form-control" id="commissionNet" placeholder="Commission" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="currency" class="form-label">Currency</label>
+                        <select class="form-select form-select-sm" ngModel ngModelGroup="tripRevenue" name="currency" id="currency" required>
+                            <option value="PLN">PLN</option>
+                            <option value="EUR">EUR</option>
+                            <option value="USD">USD</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="add-trip-form" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button [disabled]="addForm.invalid" type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Trip Modal -->
+<div class="modal fade" id="previewTripModal" tabindex="-1" aria-labelledby="previewTripModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewTripModalLabel">Trip from {{ tripToPreview?.origin }} to {{ tripToPreview?.destination }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-1">Status:</div>
+                        <div class="col-11">
+                            <div class="badge mb-2"
+                                [ngClass]="[tripToPreview?.tripStatus === 'COMPLETED' ? 'bg-success' : '', tripToPreview?.tripStatus === 'UPCOMING' ? 'bg-warning' : '', tripToPreview?.tripStatus === 'CANCELLED' ? 'bg-danger' : '']">
+                                {{ tripToPreview?.tripStatus }}
+                            </div>
+                        </div>
+                    </div>
+                    <table class="table table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th>Departure date</th>
+                                <th>Time</th>
+                                <th>From</th>
+                                <th>Stopover</th>
+                                <th>To</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{ tripToPreview?.tripDate | date:'dd/MM/yyyy' }}</td>
+                                <td>{{ tripToPreview?.departureTime }}</td>
+                                <td>{{ tripToPreview?.origin }}</td>
+                                <td>{{ tripToPreview?.stopover }}</td>
+                                <td>{{ tripToPreview?.destination }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th>Revenue (net)</th>
+                                <th>Commission (net)</th>
+                                <th>Currency</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{ tripToPreview?.tripRevenue?.revenueNet | number: '1.2-2' }}</td>
+                                <td>{{ tripToPreview?.tripRevenue?.commissionNet | number: '1.2-2' }}</td>
+                                <td>{{ tripToPreview?.tripRevenue?.currency }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h6 class="fw-bolder">Weather data for {{ tripToPreview?.destination }}:</h6>
+                    <table class="table table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Average temp</th>
+                                <th>Feels like</th>
+                                <th>Summary</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let tempWeatherData of tripToPreview?.weatherData?.reverse() | slice:2:8">
+                                <td>{{ tempWeatherData.dateTime | date:'dd/MM/yyyy HH:mm' }}</td>
+                                <td>{{ tempWeatherData.averageTemp | number: '1.1-1' }}</td>
+                                <td>{{ tempWeatherData.feelsLikeTemp | number: '1.1-1' }}</td>
+                                <td>{{ tempWeatherData.description }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="row">
+                        <div class="col-sm-9">
+                        <h6 class="fw-bolder">Currency conversion summary:</h6>
+                            <div class="row">
+                                <div class="col-8 col-sm-6">
+                                    Exchange Rate:
+                                </div>
+                                <div class="col-4 col-sm-6">
+                                    {{ tripToPreview?.tripRevenue?.exchangeRate }}
+                                </div>
+                                <div class="col-8 col-sm-6">
+                                    Effective Date:
+                                </div>
+                                <div class="col-4 col-sm-6">
+                                    {{ tripToPreview?.tripRevenue?.exchangeRateDate | date:'dd/MM/yyyy' }}
+                                </div>
+                                <div class="col-8 col-sm-6">
+                                    Revenue net (local currency):
+                                </div>
+                                <div class="col-4 col-sm-6">
+                                    {{ tripToPreview?.tripRevenue?.revenueNetLocal | number: '1.2-2' }}
+                                </div>
+                                <div class="col-8 col-sm-6">
+                                    Commission net (local currency):
+                                </div>
+                                <div class="col-4 col-sm-6">
+                                    {{ tripToPreview?.tripRevenue?.commissionNetLocal | number: '1.2-2' }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="updateTripModal" tabindex="-1" role="dialog" aria-labelledby="updateTripModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateTripModalLabel">Edit Trip</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form #updateForm="ngForm">
+                    <input type="hidden" ngModel="{{ tripToUpdate?.id }}" name="id" class="form-control" id="id" placeholder="Id">
+                    <div class="form-group">
+                        <label for="tripDate">Departure Date</label>
+                        <input type="date" ngModel="{{ tripToUpdate?.tripDate }}" name="tripDate" class="form-control" id="tripDate" placeholder="Departure Date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="departureTime">Time</label>
+                        <input type="time" ngModel="{{ tripToUpdate?.departureTime }}" name="departureTime" class="form-control" id="departureTime" placeholder="Time" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="origin">Origin</label>
+                        <input type="text" ngModel="{{ tripToUpdate?.origin }}" name="origin" class="form-control" id="origin" aria-describedby="emailHelp" placeholder="Origin" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="stopover">Stopover</label>
+                        <input type="email" ngModel="{{ tripToUpdate?.stopover }}" name="stopover" class="form-control" id="stopover" placeholder="Stopover">
+                    </div>
+                    <div class="form-group">
+                        <label for="destination">Destination</label>
+                        <input type="text" ngModel="{{ tripToUpdate?.destination }}" name="destination" class="form-control" id="destination" placeholder="Destination" required>
+                    </div>
+                    <div>
+                        <label for="tripStatus" class="form-label">Trip Status</label>
+                        <select class="form-select form-select-sm" ngModel="{{ tripToUpdate?.tripStatus }}" name="tripStatus" id="tripStatus" required>
+                            <option value="UPCOMING">Upcoming</option>
+                            <option value="COMPLETED">Completed</option>
+                            <option value="CANCELLED">Cancelled</option>
+                        </select>
+                    </div>
+                    <input type="hidden" ngModelGroup="tripRevenue" ngModel="{{ tripToUpdate?.tripRevenue?.id }}" name="id" class="form-control" id="id" placeholder="Id">
+                    <div class="form-group" ngModelGroup="tripRevenue">
+                        <label for="revenueNet">Revenue Net</label>
+                        <input type="text" ngModel="{{ tripToUpdate?.tripRevenue?.revenueNet | number: '1.2-2' }}" name="revenueNet" class="form-control" id="revenueNet" placeholder="Revenue Net" required>
+                    </div>
+                    <div class="form-group" ngModelGroup="tripRevenue">
+                        <label for="commissionNet">Commission</label>
+                        <input type="text" ngModel="{{ tripToUpdate?.tripRevenue?.commissionNet | number: '1.2-2' }}" name="commissionNet" class="form-control" id="commissionNet" placeholder="Commission" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="tripStatus" class="form-label">Currency</label>
+                        <select class="form-select form-select-sm" ngModelGroup="tripRevenue" ngModel="{{ tripToUpdate?.tripRevenue?.currency }}" name="currency" id="currency" required>
+                            <option value="PLN">PLN</option>
+                            <option value="EUR">EUR</option>
+                            <option value="USD">USD</option>
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="update-trip-form" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button (click)="updateTrip(updateForm.value)" class="btn btn-primary" data-bs-dismiss="modal">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal --> 
+<div class="modal fade" id="deleteTripModal" tabindex="-1" role="dialog" aria-labelledby="deleteModelLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModelLabel">Delete Trip</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this expense?</p>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                    <button (click)="deleteTrip(tripToDelete?.id)" class="btn btn-danger" data-bs-dismiss="modal">Yes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

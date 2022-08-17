@@ -1,0 +1,318 @@
+<div class="container" id="main-container">
+    <div class="row">
+        <div class="col-md-12 mt-3">
+            <h3>Expenses
+                <button type="button" (click)="onOpenModal('add')" class="btn btn-success float-end" data-bs-toggle="modal" data-bs-target="#addExpenseModal">Add expense</button>
+            </h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Vendor</th>
+                        <th>Total (net)</th>
+                        <th>Total (gross)</th>
+                        <th>Currency</th>
+                        <th>Form of payment</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let tempExpense of expenses">
+                        <td>{{ tempExpense.expenseDate | date:'dd/MM/yyyy' }}</td>
+                        <td>{{ tempExpense.vendor.name }}</td>
+                        <td>{{ tempExpense.totalNetValue | number: '1.2-2' }}</td>
+                        <td>{{ tempExpense.totalGrossValue | number: '1.2-2' }}</td>
+                        <td>{{ tempExpense.currency }}</td>
+                        <td>{{ tempExpense.paymentType }}</td>
+                        <td>
+                            <div class="float-right btn-group btn-group-sm">
+                                <a (click)="onOpenModal('preview', tempExpense)" class="btn btn-outline-success tooltips" data-bs-toggle="modal" data-bs-target="#previewExpenseModal" data-placement="top" data-original-title="Preview"><i class="fa-solid fa-magnifying-glass"></i></a>
+                                <a (click)="onOpenModal('update', tempExpense)" class="btn btn-outline-primary tooltips" data-bs-toggle="modal" data-bs-target="#updateExpenseModal" data-placement="top" data-original-title="Edit"><i class="fa fa-pen-to-square"></i></a>
+                                <a (click)="onOpenModal('delete', tempExpense)" class="btn btn-outline-danger tooltips" data-bs-toggle="modal" data-bs-target="#deleteExpenseModal" data-placement="top" data-original-title="Delete"><i class="fa fa-trash-can"></i></a>
+                             </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo; Previous</span>
+                        </a>
+                    </li>
+                    <li class="page-item"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">Next &raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Add Expense Modal -->
+<div class="modal fade" id="addExpenseModal" tabindex="-1" role="dialog" aria-labelledby="addExpenseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addExpenseModalLabel">Add Expense</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form [formGroup]="expenseFormGroup" (ngSubmit)="addExpense()">
+                    <div class="form-group">
+                        <label for="expenseDate">Expense Date</label>
+                        <input type="date" formControlName="expenseDate" name="expenseDate" class="form-control" id="expenseDate" placeholder="Expense Date" required>
+                    </div>
+                    <div class="form-group" formGroupName="vendor">
+                        <label for="taxId">Vendor Tax ID</label>
+                        <input type="text" formControlName="taxId" name="taxId" class="form-control" id="taxId" placeholder="Vendor Tax ID" required>
+                    </div>
+                    <div class="form-group" formGroupName="vendor">
+                        <label for="name">Vendor Name</label>
+                        <input type="text" formControlName="name" name="name" class="form-control" id="name" placeholder="Vendor Name" required>
+                    </div>
+                    <div formArrayName="expenseItems">
+                        <label for="expenseItems">Expense Items</label>
+                        <div class="row align-items-end" *ngFor="let expenseItem of expenseItemForms.controls; let i=index" [formGroupName]="i">
+                            <div class="col-6">
+                                <label class="form-label">Description</label>
+                                <input type="text" formControlName="description" class="form-control form-control-sm" placeholder="Description">
+                            </div>
+                            <div class="col">
+                                <label class="form-label">Net Value</label>
+                                <input type="text" formControlName="netValue" class="form-control form-control-sm" placeholder="Net Value">
+                            </div>
+                            <div class="col">
+                                <label for="vatRate" class="form-label">VAT rate</label>
+                                <select class="form-select form-select-sm" formControlName="vatRate" name="vatRate" id="vatRate" required>
+                                    <option value="PTU_A">23%</option>
+                                    <option value="PTU_B">8%</option>
+                                    <option value="PTU_C">5%</option>
+                                    <option value="PTU_D">0%</option>
+                                </select>
+                            </div>
+                            <div class="col-1">
+                                <button type="button" class="form-control btn btn-outline-danger btn-sm tooltips" (click)="removeExpenseItemField(i)">
+                                    <i class="fa fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button type="button" class="btn btn-outline-success btn-sm" (click)="addExpenseItemField()">
+                            <i class="fa fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="row">
+                    <div class="col mb-3">
+                        <label for="currency" class="form-label">Currency</label>
+                        <select class="form-select form-select-sm" formControlName="currency" name="currency" id="currency" required>
+                            <option value="PLN">PLN</option>
+                            <option value="EUR">EUR</option>
+                            <option value="USD">USD</option>
+                        </select>
+                    </div>
+                    <div class="col mb-3">
+                        <label for="paymentType" class="form-label">Form of Payment</label>
+                        <select class="form-select form-select-sm" formControlName="paymentType" name="paymentType" id="paymentType" required>
+                            <option value="CASH">Cash</option>
+                            <option value="CARD">Card</option>
+                            <option value="TRANSFER">Transfer</option>
+                            <option value="DEDUCTION">Deduction</option>
+                        </select>
+                    </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="add-expense-form" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button  type="submit" class="btn btn-primary">Save</button>
+                    </div>    
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Expense Modal -->
+<div class="modal fade" id="previewExpenseModal" tabindex="-1" aria-labelledby="previewExpenseModal" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewExpenseModalLabel">Expense Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid">
+                    <table class="table table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Vendor</th>
+                                <th>Tax ID</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{ expenseToPreview?.expenseDate | date:'dd/MM/yyyy' }}</td>
+                                <td>{{ expenseToPreview?.vendor?.name }}</td>
+                                <td>{{ expenseToPreview?.vendor?.taxId }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <table class="table table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th>Total (net)</th>
+                                <th>Total (gross)</th>
+                                <th>Currency</th>
+                                <th>Payment method</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{ expenseToPreview?.totalNetValue | number: '1.2-2' }}</td>
+                                <td>{{ expenseToPreview?.totalGrossValue | number: '1.2-2' }}</td>
+                                <td>{{ expenseToPreview?.currency }}</td>
+                                <td>{{ expenseToPreview?.paymentType }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h6 class="fw-bolder">Expense items:</h6>
+                    <table class="table table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Net Value</th>
+                                <th>VAT Rate</th>
+                                <th>Gross Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let tempExpenseItem of expenseToPreview?.expenseItems">
+                                <td>{{ tempExpenseItem?.description }}</td>
+                                <td>{{ tempExpenseItem?.netValue | number: '1.2-2' }}</td>
+                                <td>{{ tempExpenseItem?.vatRate }}</td>
+                                <td>{{ tempExpenseItem?.grossValue | number: '1.2-2' }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="updateExpenseModal" tabindex="-1" role="dialog" aria-labelledby="updateExpenseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="updateExpenseModalLabel">Edit Expense</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form [formGroup]="expenseFormGroup">
+                    <input type="hidden" formControlName="id" value="{{ expenseToUpdate?.id }}" name="id" class="form-control" id="id" placeholder="Id">
+                    <div class="form-group">
+                        <label for="expenseDate">Expense Date</label>
+                        <input type="date" formControlName="id" value="{{ expenseToUpdate?.expenseDate }}" name="expenseDate" class="form-control" id="expenseDate" placeholder="Expense Date" required>
+                    </div>
+                    <div formGroupName="vendor">
+                        <input type="hidden" formControlName="id" value="{{ expenseToUpdate?.vendor?.id }}" name="id" class="form-control" id="id" placeholder="Id" required>
+                    </div>
+                    <div class="form-group" formGroupName="vendor">
+                        <label for="taxId">Vendor Tax ID</label>
+                        <input type="text" formControlName="taxId" value="{{ expenseToUpdate?.vendor?.taxId }}" name="taxId" class="form-control" id="taxId" placeholder="Vendor Tax ID" required>
+                    </div>
+                    <div class="form-group" formGroupName="vendor">
+                        <label for="name">Vendor Name</label>
+                        <input type="text" formControlName="name" value="{{ expenseToUpdate?.vendor?.name }}" name="name" class="form-control" id="name" placeholder="Vendor Name" required>
+                    </div>
+                    <div formArrayName="expenseItems">
+                        <label for="expenseItems">Expense Items</label>
+                        <div class="row align-items-end" *ngFor="let expenseItem of expenseItemForms.controls; let i=index" [formGroupName]="i">
+                            <input type="hidden" formControlName="id" value="" name="id" class="form-control" id="id" placeholder="Id" required>
+                            <div class="col-6">
+                                <label class="form-label">Description</label>
+                                <input type="text" formControlName="description" class="form-control form-control-sm" placeholder="Description">
+                            </div>
+                            <div class="col">
+                                <label class="form-label">Net Value</label>
+                                <input type="text" formControlName="netValue" class="form-control form-control-sm" placeholder="Net Value">
+                            </div>
+                            <div class="col">
+                                <label for="vatRate" class="form-label">VAT rate</label>
+                                <select class="form-select form-select-sm" formControlName="vatRate" name="vatRate" id="vatRate" required>
+                                    <option value="PTU_A">23%</option>
+                                    <option value="PTU_B">8%</option>
+                                    <option value="PTU_C">5%</option>
+                                    <option value="PTU_D">0%</option>
+                                </select>
+                            </div>
+                            <div class="col-1">
+                                <button type="button" class="form-control btn btn-outline-danger btn-sm tooltips" (click)="removeExpenseItemField(i)">
+                                    <i class="fa fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button type="button" class="btn btn-outline-success btn-sm" (click)="addExpenseItemField()">
+                            <i class="fa fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="row">
+                        <div class="col mb-3">
+                            <label for="currency" class="form-label">Currency</label>
+                            <select class="form-select form-select-sm" formControlName="currency" value="{{ expenseToUpdate?.currency }}" name="currency" id="currency" required>
+                                <option value="PLN">PLN</option>
+                                <option value="EUR">EUR</option>
+                                <option value="USD">USD</option>
+                            </select>
+                        </div>
+                        <div class="col mb-3">
+                            <label for="paymentType" class="form-label">Form of Payment</label>
+                            <select class="form-select form-select-sm" formControlName="paymentType" value="{{ expenseToUpdate?.paymentType }}" name="paymentType" id="paymentType" required>
+                                <option value="CASH">Cash</option>
+                                <option value="CARD">Card</option>
+                                <option value="TRANSFER">Transfer</option>
+                                <option value="DEDUCTION">Deduction</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="update-expense-form" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button  type="submit" class="btn btn-primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal --> 
+<div class="modal fade" id="deleteExpenseModal" tabindex="-1" role="dialog" aria-labelledby="deleteModelLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModelLabel">Delete Expense</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this expense?</p>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                    <button (click)="deleteExpense(expenseToDelete?.id)" class="btn btn-danger" data-bs-dismiss="modal">Yes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
