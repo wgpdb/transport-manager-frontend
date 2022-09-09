@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Trip } from '../interface/trip';
 import { environment } from 'src/environments/environment';
+import { Page } from '../interface/page';
 
 @Injectable({
   providedIn: 'root'
@@ -13,8 +14,8 @@ export class TripService {
 
   constructor(private http: HttpClient) { }
 
-  getTrips(): Observable<Trip[]> {
-    return this.http.get<Trip[]>(`${this.backendUrl}/trips`);
+  getTrips(page: number = 0, size: number = 10): Observable<Page<Trip[]>> {
+    return this.http.get<Page<Trip[]>>(`${this.backendUrl}/trips/p?page=${page}&size=${size}`);
   }
 
   addTrip(trip: Trip): Observable<Trip> {

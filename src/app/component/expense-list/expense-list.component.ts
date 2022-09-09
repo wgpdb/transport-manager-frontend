@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { Expense } from 'src/app/interface/expense';
 import { ExpenseItem } from 'src/app/interface/expense-item';
+import { Page } from 'src/app/interface/page';
 import { ExpenseService } from 'src/app/service/expense.service';
 
 @Component({
@@ -13,6 +14,7 @@ import { ExpenseService } from 'src/app/service/expense.service';
 export class ExpenseListComponent implements OnInit {
 
   expenses: Expense[] = [];
+  expensesPage?: Page<Expense[]>;
   expenseToPreview?: Expense;
   expenseToUpdate?: Expense;
   expenseToDelete?: Expense;
@@ -61,7 +63,15 @@ export class ExpenseListComponent implements OnInit {
   listExpenses() {
     this.expenseService.getExpenses().subscribe(
       data => {
-        this.expenses = data;
+        this.expensesPage = data;
+      }
+    );
+  }
+
+  goToPage(page: number, size?: number): void {
+    this.expenseService.getExpenses(page, size).subscribe(
+      data => {
+        this.expensesPage = data;
       }
     );
   }

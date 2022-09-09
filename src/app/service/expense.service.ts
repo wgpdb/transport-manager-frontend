@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Expense } from '../interface/expense';
+import { Page } from '../interface/page';
 
 @Injectable({
   providedIn: 'root'
@@ -13,8 +14,8 @@ export class ExpenseService {
 
   constructor(private http: HttpClient) { }
 
-  getExpenses(): Observable<Expense[]> {
-    return this.http.get<Expense[]>(`${this.backendUrl}/expenses`);
+  getExpenses(page: number = 0, size: number = 10): Observable<Page<Expense[]>> {
+    return this.http.get<Page<Expense[]>>(`${this.backendUrl}/expenses/p?page=${page}&size=${size}`);
   }
 
   addExpense(expense: Expense): Observable<Expense> {

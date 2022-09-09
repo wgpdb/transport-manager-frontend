@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
+import { Page } from 'src/app/interface/page';
 import { Trip } from 'src/app/interface/trip';
 import { TripService } from 'src/app/service/trip.service';
 
@@ -12,6 +13,7 @@ import { TripService } from 'src/app/service/trip.service';
 export class TripListComponent implements OnInit {
 
   trips: Trip[] = [];
+  tripsPage?: Page<Trip[]>;
   tripToPreview?: Trip;
   tripToUpdate?: Trip;
   tripToDelete?: Trip;
@@ -25,7 +27,15 @@ export class TripListComponent implements OnInit {
   listTrips() {
     this.tripService.getTrips().subscribe(
       data => {
-        this.trips = data;
+        this.tripsPage = data;
+      }
+    );
+  }
+
+  goToPage(page: number, size?: number): void {
+    this.tripService.getTrips(page, size).subscribe(
+      data => {
+        this.tripsPage = data;
       }
     );
   }
@@ -34,7 +44,6 @@ export class TripListComponent implements OnInit {
     document.getElementById('add-trip-form')?.click();
     this.tripService.addTrip(addForm.value).subscribe(
       (response: Trip) => {
-        console.log(response);        
         this.listTrips();
         addForm.reset();
       },
@@ -49,7 +58,6 @@ export class TripListComponent implements OnInit {
     document.getElementById('update-trip-form')?.click();
     this.tripService.updateTrip(trip).subscribe(
       (response: Trip) => {
-        console.log(response);
         this.listTrips();
       },
       (error: HttpErrorResponse) => {
@@ -61,7 +69,6 @@ export class TripListComponent implements OnInit {
   deleteTrip(tripId: number | undefined): void {
     this.tripService.deleteTrip(tripId!).subscribe(
       (response: void) => {
-        console.log(response);
         this.listTrips();
       },
       (error: HttpErrorResponse) => {
