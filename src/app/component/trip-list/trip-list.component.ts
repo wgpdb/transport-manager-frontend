@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
+import { BehaviorSubject } from 'rxjs';
 import { Page } from 'src/app/interface/page';
 import { Trip } from 'src/app/interface/trip';
 import { TripService } from 'src/app/service/trip.service';
@@ -13,10 +14,12 @@ import { TripService } from 'src/app/service/trip.service';
 export class TripListComponent implements OnInit {
 
   trips: Trip[] = [];
-  tripsPage?: Page<Trip[]>;
+  tripsPage!: Page<Trip[]>;
   tripToPreview?: Trip;
   tripToUpdate?: Trip;
   tripToDelete?: Trip;
+  private currentPageSubject = new BehaviorSubject<number>(0);
+  currentPage$ = this.currentPageSubject.asObservable();
 
   constructor(private tripService: TripService) { }
 
@@ -25,9 +28,10 @@ export class TripListComponent implements OnInit {
   }
 
   listTrips() {
-    this.tripService.getTrips().subscribe(
+    this.tripService.getTrips(this.currentPageSubject.value).subscribe(
       data => {
         this.tripsPage = data;
+        this.currentPageSubject.next(this.tripsPage.number);
       }
     );
   }
@@ -36,8 +40,13 @@ export class TripListComponent implements OnInit {
     this.tripService.getTrips(page, size).subscribe(
       data => {
         this.tripsPage = data;
+        this.currentPageSubject.next(this.tripsPage.number);
       }
     );
+  }
+
+  goToNextPreviousPage(direction: string): void {
+    this.goToPage(direction === 'forward' ? this.currentPageSubject.value + 1 : this.currentPageSubject.value - 1);
   }
 
   addTrip(addForm: NgForm): void {

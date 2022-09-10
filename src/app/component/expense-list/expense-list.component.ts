@@ -1,8 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { BehaviorSubject } from 'rxjs';
 import { Expense } from 'src/app/interface/expense';
-import { ExpenseItem } from 'src/app/interface/expense-item';
 import { Page } from 'src/app/interface/page';
 import { ExpenseService } from 'src/app/service/expense.service';
 
@@ -14,10 +14,12 @@ import { ExpenseService } from 'src/app/service/expense.service';
 export class ExpenseListComponent implements OnInit {
 
   expenses: Expense[] = [];
-  expensesPage?: Page<Expense[]>;
+  expensesPage!: Page<Expense[]>;
   expenseToPreview?: Expense;
   expenseToUpdate?: Expense;
   expenseToDelete?: Expense;
+  private currentPageSubject = new BehaviorSubject<number>(0);
+  currentPage$ = this.currentPageSubject.asObservable();
 
   expenseFormGroup!: FormGroup;
 
@@ -61,9 +63,10 @@ export class ExpenseListComponent implements OnInit {
   }
 
   listExpenses() {
-    this.expenseService.getExpenses().subscribe(
+    this.expenseService.getExpenses(this.currentPageSubject.value).subscribe(
       data => {
         this.expensesPage = data;
+        this.currentPageSubject.next(this.expensesPage.number);
       }
     );
   }
@@ -72,8 +75,13 @@ export class ExpenseListComponent implements OnInit {
     this.expenseService.getExpenses(page, size).subscribe(
       data => {
         this.expensesPage = data;
+        this.currentPageSubject.next(this.expensesPage.number);
       }
     );
+  }
+
+  goToNextPreviousPage(direction: string): void {
+    this.goToPage(direction === 'forward' ? this.currentPageSubject.value + 1 : this.currentPageSubject.value - 1);
   }
 
   addExpense(): void {
